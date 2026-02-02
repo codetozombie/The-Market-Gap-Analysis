@@ -113,3 +113,4 @@ Please edit this `README.md` file in your forked repository to include the follo
 **Important Note on Code Submission:**
 * Upload your `.ipynb` notebook file to the repo.
 * **Crucial:** Also upload an **HTML or PDF export** of your notebook so we can see your charts even if GitHub fails to render the notebook code.
+* Once you are ready, please fill out the [Official Submission Form Here](https://forms.office.com/e/heitZ9PP7y) with your links
