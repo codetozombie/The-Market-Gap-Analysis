@@ -1,121 +1,108 @@
-# Project Brief: The "Sugar Trap" Market Gap Analysis
+# Market Gap Analysis: Open Food Facts
 
-**Client:** Helix CPG Partners (Strategic Food & Beverage Consultancy)  
-**Deliverable:** Interactive Dashboard, Code Notebook & Insight Presentation
+## A. The Executive Summary
+This market analysis of the Open Food Facts dataset reveals a significant "Blue Ocean" opportunity in the Meat & Seafood snack category, which remains underserved compared to the saturated, high-sugar Energy Bar market. The data identifies a specific "Opportunity Zone" for products containing over 37g of protein and less than 1.6g of sugar per 100g, targets that maximize nutritional value for health-conscious consumers. Furthermore, the "Candidate's Choice" complexity analysis confirms that Meat & Seafood snacks offer a decisive "Clean Label" advantage, averaging a median of ~12 ingredients compared to ~25 ingredients in competitor cereal bars. Consequently, the recommended strategy is to launch a high-protein, savory snack that competes on both superior macronutrients and ingredient simplicity.
 
----
+## B. Project Links
+* **Notebook:** The full analysis code, PDF, and HTML reports can be found in the [GitHub Repository](https://github.com/codetozombie/amalitech_nss).
+* **Dashboard:** [Interactive Streamlit Dashboard](https://codetozombie-amalitech-nss-app-iirfmj.streamlit.app/)
+* **Presentation:** [Link to Slides (PDF/PPT)](https://ugedugh-my.sharepoint.com/:p:/g/personal/ankamoako_st_ug_edu_gh/IQAwgeSfabzwSJgxo-naogyVATivDB1el0Zc5WeGf5My4oU?e=csbPt0)
+* **Video Walkthrough :** [Link to YouTube](https://youtu.be/sYY7Z_WsLF4)
 
-## 1. Business Context
-**Helix CPG Partners** advises major food manufacturers on new product development. Our newest client, a global snack manufacturer, wants to launch a "Healthy Snacking" line. They believe the market is oversaturated with sugary treats, but they lack the data to prove where the specific gaps are.
+## C. Technical Explanation
 
-They have hired us to answer one question: **"Where is the 'Blue Ocean' in the snack aisle?"**
+### Data Cleaning Strategy
+The data cleaning process was executed in `helpers/task_1.ipynb` and encapsulated in a reusable `wrangle` function. The approach focused on data integrity and removing noise:
+1.  **Scope Filtering:** The dataset was strictly subsetted to relevant "Snack" categories.
+2.  **Dimensionality Reduction:** Dropped columns with >80% missing values and administrative metadata (e.g., `url`, `created_t`, `states_tags`) that offered no analytical value.
+3.  **Imputation:** Missing values in `product_name` and `countries_en` were labeled as "Unknown." Statistical mode imputation was used for the `nova_group` (processing level).
+4.  **Outlier Removal & Biological Limits:**
+    * Removed rows exceeding theoretical nutritional limits (e.g., Energy > 900 kcal/100g, Macronutrients > 100g/100g).
+    * Enforced logical constraints (e.g., Saturated Fat must be ≤ Total Fat).
+    * Removed Nutri-Score outliers (< -15 or > 40).
 
-Specifically, they are looking for product categories that are currently under-served—areas where consumer demand for health (e.g., High Protein, High Fiber) is not being met by current product offerings (which are mostly High Sugar, High Fat).
-
-## 2. The Data
-You will use the **Open Food Facts** dataset, a free, open, and massive database of food products from around the world.
-
-* **Source:** [Open Food Facts Data](https://world.openfoodfacts.org/data)
-* **Format:** CSV (Comma Separated Values)
-* **Warning:** The full dataset is massive (over 3GB). You are **not** expected to process the entire file. You should filter the data early or work with a manageable subset (e.g., the first 500,000 rows or specific categories).
-
-## 3. Tooling Requirements
-You have the flexibility to choose your development environment:
-
-* **Option A (Recommended):** Use a cloud-hosted notebook like **Google Colab**, or **Deepnote**, etc.
-* **Option B:** Use a local **Jupyter Notebook** or **VS Code**.
-    * *Condition:* If you choose this, you must ensure your code is reproducible. Do not reference local file paths (e.g., `C:/Downloads/...`). Assume the dataset is in the same folder as your notebook.
-* **Dashboarding:** The final output must be a **publicly accessible link** (e.g., Tableau Public, Google Looker Studio, Streamlit Cloud, or PowerBI Web).
-
----
-
-## 4. User Stories & Acceptance Criteria
-
-### Story 1: Data Ingestion & "The Clean Up"
-**As a** Strategy Director,  
-**I want** a clean dataset that removes products with erroneous nutritional information,  
-**So that** my analysis is not skewed by bad data entry.
-
-* **Acceptance Criteria:**
-    * Handle missing values: Decide what to do with rows that have `null` or empty `sugars_100g`, `proteins_100g`, or `product_name`.
-    * Handle outliers: Filter out biologically impossible values.
-    * **Deliverable:** A cleaned Pandas DataFrame or SQL table export.
-
-### Story 2: The Category Wrangler
-**As a** Product Manager,  
-**I want** to group products into readable high-level categories,  
-**So that** I don't have to look at 10,000 unique, messy tags like `en:chocolate-chip-cookies-with-nuts`.
-
-* **Acceptance Criteria:**
-    * The `categories_tags` column is a comma-separated string (e.g., `en:snacks, en:sweet-snacks, en:biscuits`). You must parse this string.
-    * Create a logic to assign a "Primary Category" to each product based on keywords.
-    * Create at least 5 distinct high-level buckets.
-
-### Story 3: The "Nutrient Matrix" Visualization
-**As a** Marketing Lead,  
-**I want** to see a Scatter Plot comparing Sugar (X-axis) vs. Protein (Y-axis) for different categories,  
-**So that** I can visually spot where the products are clustered.
-
-* **Acceptance Criteria:**
-    * Create a dashboard (PowerBI, Tableau, Streamlit, or Python-based charts) displaying this relationship.
-    * Allow the user to filter the chart by the "High Level Categories" you created in Story 2.
-    * **Key Visual:** Identify the "Empty Quadrant" (e.g., High Protein + Low Sugar).
-
-### Story 4: The Recommendation
-**As a** Client,  
-**I want** a clear text recommendation on what product we should build,  
-**So that** I can take this to the R&D team.
-
-* **Acceptance Criteria:**
-    * On the dashboard, include a "Key Insight" box.
-    * Complete this sentence: *"Based on the data, the biggest market opportunity is in [Category Name], specifically targeting products with [X]g of protein and less than [Y]g of sugar."*
+### Candidate's Choice: Ingredient Complexity Analysis
+For the "Candidate's Choice" requirement, I developed a **Clean Label/Ingredient Complexity Metric**.
+* **Goal:** To determine which high-protein categories offer a "cleaner" product profile to appeal to health-conscious consumers avoiding ultra-processed foods (UPFs).
+* **Implementation:** I engineered a feature `ingredient_count` by parsing the comma-separated `ingredients_text`.
+* **Result:** A comparative analysis revealed that **Meat & Seafood** snacks (Median ~12 ingredients) are significantly "cleaner" than **Energy & Cereal Bars** (Median ~25 ingredients). This strengthens the recommendation to pivot toward savory protein snacks, as they compete on both macronutrients and ingredient simplicity.
 
 ---
 
-## 5. Bonus User Story: The "Hidden Gem"
-**As a** Health Conscious Consumer,  
-**I want** to know which specific ingredients are driving the high protein content in the "good" products,  
-**So that** I can replicate this in our new recipe.
+## Methodology: Category Engineering
 
-* **Acceptance Criteria:**
-    * Analyze the `ingredients_text` column for products in your "High Protein" cluster.
-    * Extract and list the Top 3 most common protein sources (e.g., "Whey", "Peanuts", "Soy").
+To ensure accurate analysis, raw category data was normalized and reclassified using a **Hierarchical Keyword Matching System**.
 
----
+### 1. Text Preparation
+Fields (`categories_en`, `product_name`) were combined, lowercased, and normalized (hyphens converted to spaces) to create a searchable text string.
 
-## 6. The "Candidate's Choice" Challenge
-**As a** Creative Analyst,  
-**I want** to add one additional feature or analysis to this project that I believe provides massive value,  
-**So that** I can show off my business acumen.
+### 2. Priority-Based Assignment
+Categories were assigned based on a "Waterfall" priority logic—matches at Level 1 override matches at Level 5.
 
-* **Instructions:**
-    * Add one more chart, filter, or metric that wasn't asked for.
-    * Explain **why** you added it.
-    * **There is no wrong answer, but you must justify your choice.**
+* **Level 1 (Non-Snack/Meals):** Beverages, Supplements, Meals & Sandwiches.
+* **Level 2 (High Value/Natural):** Meat & Seafood, Fruit & Veggie, Nuts & Seeds, Dairy.
+* **Level 3 (Salty):** Chips & Popcorn.
+* **Level 4 (Sweet):** Breakfast/Cereals, Energy Bars, Biscuits/Cakes, Chocolates.
+* **Level 5 (Fallback):** Savory Misc, Plant-Based Misc.
+
+*If no keywords matched, the product was labeled "Other Snacks".*
 
 ---
 
-## 7. Submission Guidelines
-Please edit this `README.md` file in your forked repository to include the following three sections at the top:
+## Dashboard Features
 
-### A. The Executive Summary
-* A 3-5 sentence summary of your findings.
+The Streamlit dashboard allows stakeholders to visualize the "Opportunity Zone" (High Protein, Low Sugar).
 
-### B. Project Links
-* **Link to Notebook:** (e.g., Google Colab, etc.). *Ensure sharing permissions are set to "Anyone with the link can view".*
-* **Link to Dashboard:** (e.g., Tableau Public / Power BI Web, etc.).
-* **Link to Presentation:** A link to a short slide deck (PDF, PPT) AND (Optional) a 2-minute video walkthrough (YouTube) explaining your results.
-
-### C. Technical Explanation
-* Briefly explain how you handled the "Data Cleaning".
-* Explain your "Candidate's Choice" addition.
-
-**Important Note on Code Submission:**
-* Upload your `.ipynb` notebook file to the repo.
-* **Crucial:** Also upload an **HTML or PDF export** of your notebook so we can see your charts even if GitHub fails to render the notebook code.
-* Once you are ready, please fill out the [Official Submission Form Here](https://forms.office.com/e/heitZ9PP7y) with your links
+* **Opportunity Zone Definition:** Products containing **Sugar < 5g/100g** AND **Protein > 20g/100g**.
+* **Leaderboard:** Ranks top products by their Protein-to-Sugar ratio.
+* **Ingredient Drivers:** Identifies that **Chicken**, **Dairy**, and **Beef** are the primary protein drivers in the current opportunity zone.
 
 ---
+
+## Project Structure
+
+* `main.ipynb`: The primary analysis notebook.
+* `app.py`: Source code for the Streamlit visualization dashboard.
+* `helpers/`: Contains the cleaning scripts and data wrangling functions.
+* `dataset/`:
+    * `snacks.csv`: The cleaned, processed data used for visualization.
+    * *Note: Raw data is not included due to size.*
+* `requirements.txt`: Python dependencies.
+
+---
+
+## How to Run Locally
+
+### 1. Setup
+Clone the repository:
+```bash
+git clone [https://github.com/codetozombie/amalitech_nss](https://github.com/codetozombie/amalitech_nss)
+cd amalitech_nss
+```
+
+### 2. Data Acquisition
+Create a dataset folder. Download the Open Food Facts CSV. To replicate the analysis on the first 100,000 rows, run the following command for your OS:
+
+Windows (PowerShell):
+```bash
+Get-Content "en.openfoodfacts.org.products.csv" -TotalCount 100000 | Set-Content "dataset/openfoodfacts_100k.csv"
+```
+Mac/Linux (Terminal):
+```bash
+head -n 100000 en.openfoodfacts.org.products.csv > dataset/openfoodfacts_100k.csv
+```
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run Analysis
+Open main.ipynb in Jupyter or VS Code and run all cells.
+
+### 5. Launch Dashboard
+```bash
+streamlit run app.py
+```
 
 ## 🛑 CRITICAL: Pre-Submission Checklist
 
@@ -126,20 +113,20 @@ Please edit this `README.md` file in your forked repository to include the follo
 > **We do not accept "permission error" excuses. Test your links in Incognito Mode.**
 
 ### 1. Repository & Code Checks
-- [ ] **My GitHub Repo is Public.** (Open the link in a Private/Incognito window to verify).
-- [ ] **I have uploaded the `.ipynb` notebook file.**
-- [ ] **I have ALSO uploaded an HTML or PDF export** of the notebook.
-- [ ] **I have NOT uploaded the massive raw dataset.** (Use `.gitignore` or just don't commit the CSV).
-- [ ] **My code uses Relative Paths.** 
+- [x] **My GitHub Repo is Public.** (Open the link in a Private/Incognito window to verify).
+- [x] **I have uploaded the `.ipynb` notebook file.**
+- [x] **I have ALSO uploaded an HTML or PDF export** of the notebook.
+- [x] **I have NOT uploaded the massive raw dataset.** (Use `.gitignore` or just don't commit the CSV).
+- [x] **My code uses Relative Paths.** 
 
 ### 2. Deliverable Checks
-- [ ] **My Dashboard link is publicly accessible.** (No login required).
-- [ ] **My Presentation link is publicly accessible.** (Permissions set to "Anyone with the link can view").
-- [ ] **I have updated this `README.md` file** with my Executive Summary and technical notes.
+- [x] **My Dashboard link is publicly accessible.** (No login required).
+- [x] **My Presentation link is publicly accessible.** (Permissions set to "Anyone with the link can view").
+- [x] **I have updated this `README.md` file** with my Executive Summary and technical notes.
 
 ### 3. Completeness
-- [ ] I have completed **User Stories 1-4**.
-- [ ] I have completed the **"Candidate's Choice"** challenge and explained it in the README.
+- [x] I have completed **User Stories 1-4**.
+- [x] I have completed the **"Candidate's Choice"** challenge and explained it in the README.
 
 **✅ Only when you have checked every box above, proceed to the submission form.**
 
